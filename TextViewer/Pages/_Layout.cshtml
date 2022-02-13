@@ -1,0 +1,66 @@
+﻿@using Microsoft.AspNetCore.Components.Web
+@namespace TextViewer.Pages
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<!DOCTYPE html>
+<html lang="en" oncontextmenu="return false;" oncontextmenu:preventDefault="true">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    @if (Html.IsDebug())
+    {
+    <base href="~/" />
+    }
+    else
+    {
+    <base href="/app/" />
+    }
+    <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
+    <link href="css/site.css" rel="stylesheet" />
+    <link href="TextViewer.styles.css" rel="stylesheet" />
+    <style>html { user-select: none; }</style>
+    <script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.3.1.min.js"></script>
+@*    <style media="print">body {display:none;visibility:hidden;}</style>
+*@
+    <component type="typeof(HeadOutlet)" render-mode="ServerPrerendered" />
+</head>
+<body>
+    @RenderBody()
+
+    <div id="blazor-error-ui">
+        <environment include="Staging,Production">
+            An error has occurred. This application may no longer respond until reloaded.
+        </environment>
+        <environment include="Development">
+            An unhandled exception has occurred. See browser dev tools for details.
+        </environment>
+        <a href="" class="reload">Reload</a>
+        <a class="dismiss">🗙</a>
+    </div>
+
+    <script src="_framework/blazor.server.js"></script>
+    <script>
+        window.GetIP = function () {
+    var token = $('input[name="__RequestVerificationToken"]').val();
+    console.log(token);
+    var myData = {}; //if you want to post extra data
+    var dataWithAntiforgeryToken = $.extend(myData, { '__RequestVerificationToken': token });
+    var ip = String('');
+    $.ajax({
+        async: !1, //async works as well 
+        url: arguments[0],
+        type: "POST",
+        data: dataWithAntiforgeryToken,
+        success: function (data) {
+            ip = data;
+            console.log('Got IP: ' + ip);
+        },
+        error: function () {
+            console.log('Failed to get IP!');
+        }
+    });
+    return ip;
+};
+    </script>
+</body>
+</html>

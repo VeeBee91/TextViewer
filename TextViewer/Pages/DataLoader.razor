@@ -1,0 +1,47 @@
+﻿@page "/5146EFB3-B80A-4B55-9F17-605C682318C0"
+@using Microsoft.AspNetCore.DataProtection
+@inject IDataProtectionProvider Provider
+
+<textarea style="width: 80%;height: 80vh" @bind="inputValue"></textarea>
+<br/>
+<button @onclick="SaveData">Save</button>
+<br/>
+
+@if(error) {
+    <p style="color:red">Something went wrong! See logs.</p>
+}
+@if(success) {
+    <p style="color:navy">Saved.</p>
+}
+
+@code {
+    private string? inputValue;
+    private bool success;
+    private bool error;
+
+    private async Task SaveData()
+    {
+        Logic.Log("Save triggered.");
+
+        success = false;
+        error = false;
+        if (!string.IsNullOrWhiteSpace(inputValue))
+        {
+            Logic.Log("Calling savedata.");
+            if (!(await Logic.SaveData(inputValue, Provider)))
+                error = true;
+            else
+                success = true;
+        }
+
+    }
+
+        protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            Logic.Log("DataLoader start.");
+        }
+    }
+
+}

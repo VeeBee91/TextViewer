@@ -1,0 +1,13 @@
+﻿@page "/"
+@inject IJSRuntime JsRuntime
+
+You aren't supposed to be here, are you?.
+GTFO!!
+
+@code{
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+            Logic.Log("Someone got to the index file.");
+    }
+}

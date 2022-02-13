@@ -1,0 +1,134 @@
+﻿@page "/app/35DC6E98-334D-4F26-A5DD-07AB233EA3A8"
+@using Ljbc1994.Blazor.IntersectionObserver
+@using System.Diagnostics
+@using Ljbc1994.Blazor.IntersectionObserver.Components
+@using Majorsoft.Blazor.Components.Common.JsInterop.Scroll
+@using Microsoft.AspNetCore.DataProtection
+@implements IAsyncDisposable
+@inject IScrollHandler _scrollHandler
+@inject IIntersectionObserverService ObserverService
+@inject IDataProtectionProvider Provider
+@attribute [Authorize]
+
+<PageTitle>Nen uitleg</PageTitle>
+@foreach (var t in data)
+{
+    <IntersectionObserve>
+        <div @ref=context.Ref.Current style=@(context.IsIntersecting ? "color:white": "color:#122027")>
+            @((MarkupString) t)
+        </div>
+    </IntersectionObserve>
+}
+
+
+<div hidden="@(!ponr)">
+
+</div>
+
+<div @ref="preloadReference">
+    <br />
+</div>
+
+<div>
+            @((MarkupString) placeholderText)
+</div>
+
+
+@code {
+
+    public ElementReference preloadReference { get; set; }
+    public ElementReference textReference { get; set; }
+    public ElementReference topReference { get; set; }
+    public bool IsIntersecting { get; set; }
+    private static Queue<string> queue = new(Logic.ReadAndProcessSource(Provider));
+    private static string[] data = Logic.AppendArray(queue, 20);
+    public string previousText = "";
+    public string placeholderText = "<br />";
+    public bool top = false;
+    public bool ponr = false;
+    public string speedReading = "Ik hoop da ge goe aant leze zijt (ni speedreading of doorscrollen), want het lijkt erop da ge vreed rap aant scrolle zijt. Dees automatisch tekstje is ni deel van hetgeen ik had geschreve ma verschijnt dus als ik denk da het wa rap ga. Gewoon terug een beetje naar bove (todat deze tekstblok ongeveer onzichtbaar is) scrolle en dan kunt ge voort.";
+    private Stopwatch sw = new();
+
+    private async Task OnIntersectingChanged(bool directionUp = false)
+    {
+        if (!directionUp)
+        {
+            if (sw.Elapsed < TimeSpan.FromMilliseconds(3000) && (!ponr))
+            {
+                if (placeholderText.Contains(speedReading))
+                    return;
+                placeholderText = speedReading;
+                Logic.Log("Speedreading triggered. SW: " + sw.Elapsed);
+            }
+            else
+            {
+                placeholderText = "<br />";
+                if (ponr)
+                {
+                    data = Logic.AppendArray(queue, 5);
+                    await _scrollHandler.ScrollToPageTopAsync(true);
+                }
+                if (queue.Count > 5)
+                {
+                    if (queue.Peek().Contains("Bij die laatste dacht ik, achja hij is weg."))
+                    {
+                        await Logic.ClearSource(queue);
+                        ponr = true;
+                        Logic.Log("Ponr passed.");
+                    }
+                    data = Logic.AppendArray(queue, 5, data);
+                    sw.Restart();
+                }
+                else if (queue.Count > 0)
+                {
+                    data = Logic.AppendArray(queue, queue.Count, data);
+                    sw.Stop();
+                }
+            }
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            Logic.Log("Reader start.");
+            IntersectionObserverOptions ObserverOptions = new IntersectionObserverOptions
+                {
+                    Threshold = new List<double> { 1 },
+                    RootMargin = "10px 0px 0px 0px"
+                };
+
+            sw.Start();
+            await SetupObserver(preloadReference, false, ObserverOptions);
+        }
+    }
+
+    public async Task SetupObserver(ElementReference reference, bool enableUp, IntersectionObserverOptions options)
+    {
+        await ObserverService.Observe(reference, (entries) =>
+        {
+            var entry = entries.FirstOrDefault();
+            IsIntersecting = entry.IsIntersecting;
+            if (enableUp)
+                OnIntersectingChanged(enableUp);
+            else
+                OnIntersectingChanged();
+            StateHasChanged();
+        }, options);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_scrollHandler is not null)
+            await _scrollHandler.DisposeAsync();
+    } 
+}
+
+<style>
+    body {
+        background-color: #122027; 
+        color:white;
+    }
+</style>
+

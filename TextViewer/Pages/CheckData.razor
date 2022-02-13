@@ -1,0 +1,111 @@
+﻿@page "/3EB5C6FB-5D0D-4238-8A8D-0269DA976662"
+@using System.Diagnostics
+@using System.Text
+@implements IDisposable
+@inject IJSRuntime JS
+@inject NavigationManager NavManager
+
+
+<PageTitle>Check</PageTitle>
+Effe verifiëren da gij het zijt:
+<br />
+@if (error)
+{
+    <p style="color:red"><b>Da lijkt ni juist te zijn. Probeert is opnieuw.</b></p>
+}
+else {
+    <br />
+}
+
+@for (int i = 0; i < questions.Count; i++)
+{
+    var ii = i;
+    <p>
+        @questions[i]
+        <br />
+        <input type="text" @bind-value="@answers[ii]" />
+    </p>
+}
+
+<input type="checkbox" @bind-value="@darkmode" /> Dark mode? (raad ik aan, ga minder vermoeiend zijn denk ik.) <br />
+<br />
+<button @onclick="OnButton">Check</button> 
+
+<br />
+<br />
+
+@if (success)
+{
+    <p style="color:red"><b>3 seconde geduld. Pagina gaat dadelijk voort. </b></p>
+}
+
+@code {
+    private JsInterop? jsInterop;
+    private int count = 0;
+    private bool error = false;
+    private bool success = false;
+    private bool darkmode = false;
+    private List<string> answers = new();
+    private List<string> questions = new();
+
+    private async Task OnButton()
+    {
+        Logic.Log("Submit clicked.");
+        bool result = await Logic.VerifyResponse(answers);
+        if (result)
+        {
+            StringBuilder sb = new("VerifyResponse success (answers comma seperated): ");
+            foreach (var a in answers)
+                sb.Append(a + ",");
+            sb.Length--;
+            Logic.Log(sb.ToString() + ".");
+            success = true;
+            string url = await Logic.VerifyAccess();
+            Logic.Log("VerifyAccess: " + url);
+            await CallJS(url);
+            Logic.Log("Completed JS API call. Will try to get cookie.");
+            if (darkmode)
+                await Logic.DarkMode(darkmode);
+            NavManager.NavigateTo("283DC82C-0EDC-40F9-B6CC-3C401F5B5407", true);
+        }
+        else
+        {
+            count++;
+            StringBuilder sb = new("VerifyResponse failed (answers comma seperated): ");
+            for (int i = 0; i < answers.Count; i++)
+            {
+                sb.Append(answers[i] + ",");
+                answers[i] = "";
+            }
+            sb.Length--;
+            Logic.Log(sb.ToString() + ".");
+            error = true;
+            StateHasChanged();
+            await Task.Delay(1500);
+            error = false;
+            StateHasChanged();
+        }
+        if (count > 2)
+        {
+            string url = await Logic.VerifyAccess();
+            Logic.Log("VerifyAccess: " + url);
+            await CallJS(url);
+            NavManager.NavigateTo("../6FA48EDA-E265-40B9-B4B5-9031C7A05DF8");
+        }
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        Logic.Log("CheckData start.");
+        questions = await Logic.ReadQuestions();
+        for (int i = 0; i < questions.Count; i++)
+            answers.Add("");
+        jsInterop = new(JS);
+    }
+    private async Task CallJS(string url)
+    {
+        if (jsInterop is not null)
+            await jsInterop.CommunicateAccess(url);
+    }
+
+    public void Dispose() => jsInterop?.Dispose();
+}
