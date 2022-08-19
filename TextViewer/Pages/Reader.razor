@@ -8,7 +8,7 @@
 @inject NavigationManager NavManager
 @attribute [Authorize]
 
-<PageTitle>Nen uitleg</PageTitle>
+<PageTitle>Text to be read</PageTitle>
 @foreach (var t in data)
 {
     <IntersectionObserve>
@@ -47,7 +47,7 @@
     public string placeholderText = "<br />";
     public bool top = false;
     public bool ponr = false;
-    public string speedReading = "Ik hoop da ge goe aant leze zijt (ni speedreading of doorscrollen), want het lijkt erop da ge vreed rap aant scrolle zijt. Dees automatisch tekstje is ni deel van hetgeen ik had geschreve ma verschijnt dus als ik denk da het wa rap ga. Gewoon terug een beetje naar bove (todat deze tekstblok ongeveer onzichtbaar is) scrolle en dan kunt ge voort.";
+    public string speedReading = "You're scrolling to fast. Please read the above text carefully. Scroll up until this textblock is no longer visible and you will be able to continue scrolling.";
     private TimeSpan lastItem = new(0);
     private Stopwatch sw = new();
     private bool darkMode = false;
