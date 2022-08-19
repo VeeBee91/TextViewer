@@ -7,11 +7,11 @@
 
 
 <PageTitle>Check</PageTitle>
-Effe verifiëren da gij het zijt:
+Let's authenticate you:
 <br />
 @if (error)
 {
-    <p style="color:red"><b>Da lijkt ni juist te zijn. Probeert is opnieuw.</b></p>
+    <p style="color:red"><b>That doesn't seem right. Try again.</b></p>
 }
 else {
     <br />
@@ -27,7 +27,7 @@ else {
     </p>
 }
 
-<input type="checkbox" @bind-value="@darkmode" /> Dark mode? (raad ik aan, ga minder vermoeiend zijn denk ik.) <br />
+<input type="checkbox" @bind-value="@darkmode" /> Dark mode? <br />
 <br />
 <button @onclick="OnButton">Check</button> 
 
@@ -36,7 +36,7 @@ else {
 
 @if (success)
 {
-    <p style="color:red"><b>3 seconde geduld. Pagina gaat dadelijk voort. </b></p>
+    <p style="color:red"><b>Please wait. Next page is being loaded. </b></p>
 }
 
 @code {
